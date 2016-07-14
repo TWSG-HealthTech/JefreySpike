@@ -23,7 +23,9 @@ namespace ConsoleSpeech
                 sre.SetInputToDefaultAudioDevice();
                 sre.SpeechRecognized += sre_SpeechRecognized;
                 Choices ch_WakeCommands = new Choices();
+                ch_WakeCommands.Add("See Fop");
                 ch_WakeCommands.Add("Jefrey");
+                ch_WakeCommands.Add("Brenda");
                 GrammarBuilder gb_Wake = new GrammarBuilder();
                 gb_Wake.Append(ch_WakeCommands);
                 Grammar g_Wake = new Grammar(gb_Wake);
@@ -48,10 +50,20 @@ namespace ConsoleSpeech
             Console.WriteLine($"Recognized: {txt}");
             Console.WriteLine($"Confidence: {confidence}");
             if (confidence < 0.60) return;
-            if (txt.IndexOf("Jefrey") >= 0)
+            if (txt.Contains("Jefrey"))
             {
                 Console.WriteLine("Jefrey got woken!");
-                ss.Speak("Yo! That's my name.");
+                ss.Speak("What do you want?");
+            }
+            if (txt.Contains("Brenda"))
+            {
+                Console.WriteLine("Brenda got woken!");
+                ss.Speak("How can I help?");
+            }
+            if (txt.Contains("See Fop"))
+            {
+                Console.WriteLine("CFOP got woken!");
+                ss.Speak("Don't worry, you're not that old!");
             }
         }
     }
