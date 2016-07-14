@@ -2,6 +2,8 @@
 using Microsoft.Speech.Recognition;
 using Microsoft.Speech.Synthesis;
 using System.Globalization;
+using System.Threading;
+
 namespace ConsoleSpeech
 {
     class ConsoleSpeechProgram
@@ -9,8 +11,7 @@ namespace ConsoleSpeech
         static SpeechSynthesizer ss = new SpeechSynthesizer();
         static SpeechRecognitionEngine sre;
         static bool done = false;
-        static bool speechOn = true;
-        static void Main(string[] args)
+        static void Main()
         {
             try
             {
@@ -21,33 +22,14 @@ namespace ConsoleSpeech
                 sre = new SpeechRecognitionEngine(ci);
                 sre.SetInputToDefaultAudioDevice();
                 sre.SpeechRecognized += sre_SpeechRecognized;
-                Choices ch_StartStopCommands = new Choices();
-                ch_StartStopCommands.Add("speech on");
-                ch_StartStopCommands.Add("speech off");
-                ch_StartStopCommands.Add("klatu barada nikto");
-                GrammarBuilder gb_StartStop = new GrammarBuilder();
-                gb_StartStop.Append(ch_StartStopCommands);
-                Grammar g_StartStop = new Grammar(gb_StartStop);
-                Choices ch_Numbers = new Choices();
-                ch_Numbers.Add("1");
-                ch_Numbers.Add("2");
-                ch_Numbers.Add("3");
-                ch_Numbers.Add("4");
-                ch_Numbers.Add("5");
-                ch_Numbers.Add("6");
-                ch_Numbers.Add("7");
-                ch_Numbers.Add("8");
-                ch_Numbers.Add("9");
-                GrammarBuilder gb_WhatIsXplusY = new GrammarBuilder();
-                gb_WhatIsXplusY.Append("What is");
-                gb_WhatIsXplusY.Append(ch_Numbers);
-                gb_WhatIsXplusY.Append("plus");
-                gb_WhatIsXplusY.Append(ch_Numbers);
-                Grammar g_WhatIsXplusY = new Grammar(gb_WhatIsXplusY);
-                sre.LoadGrammarAsync(g_WhatIsXplusY);
-                sre.LoadGrammarAsync(g_StartStop);
+                Choices ch_WakeCommands = new Choices();
+                ch_WakeCommands.Add("Jefrey");
+                GrammarBuilder gb_Wake = new GrammarBuilder();
+                gb_Wake.Append(ch_WakeCommands);
+                Grammar g_Wake = new Grammar(gb_Wake);
+                sre.LoadGrammarAsync(g_Wake);
                 sre.RecognizeAsync(RecognizeMode.Multiple);
-                while (done == false) {; }
+                while (done == false) { Thread.Sleep(1000); }
                 Console.WriteLine("\nHit <enter> to close shell\n");
                 Console.ReadLine();
             }
@@ -56,9 +38,9 @@ namespace ConsoleSpeech
                 Console.WriteLine(ex.Message);
                 Console.ReadLine();
             }
-        } // Main
-        static void sre_SpeechRecognized(object sender,
-          SpeechRecognizedEventArgs e)
+        }
+
+        static void sre_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
             string txt = e.Result.Text;
             float confidence = e.Result.Confidence;
@@ -66,35 +48,11 @@ namespace ConsoleSpeech
             Console.WriteLine($"Recognized: {txt}");
             Console.WriteLine($"Confidence: {confidence}");
             if (confidence < 0.60) return;
-            if (txt.IndexOf("speech on") >= 0)
+            if (txt.IndexOf("Jefrey") >= 0)
             {
-                Console.WriteLine("Speech is now ON");
-                speechOn = true;
+                Console.WriteLine("Jefrey got woken!");
+                ss.Speak("Yo! That's my name.");
             }
-            if (txt.IndexOf("speech off") >= 0)
-            {
-                Console.WriteLine("Speech is now OFF");
-                speechOn = false;
-            }
-            if (speechOn == false) return;
-            if (txt.IndexOf("klatu") >= 0 && txt.IndexOf("barada") >= 0)
-            {
-                ((SpeechRecognitionEngine)sender).RecognizeAsyncCancel();
-                done = true;
-                Console.WriteLine("(Speaking: Farewell)");
-                ss.Speak("Farewell");
-            }
-            if (txt.IndexOf("What") >= 0 && txt.IndexOf("plus") >= 0)
-            {
-                string[] words = txt.Split(' ');
-                int num1 = int.Parse(words[2]);
-                int num2 = int.Parse(words[4]);
-                int sum = num1 + num2;
-                Console.WriteLine("(Speaking: " + words[2] + " plus " +
-                  words[4] + " equals " + sum + ")");
-                ss.SpeakAsync(words[2] + " plus " + words[4] +
-                  " equals " + sum);
-            }
-        } // sre_SpeechRecognized
-    } // Program
-} // ns
+        }
+    }
+}
