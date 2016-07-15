@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Threading;
 using System.Configuration;
 using Microsoft.ProjectOxford.SpeechRecognition;
+using Newtonsoft.Json;
 
 namespace ConsoleSpeech
 {
@@ -117,6 +118,25 @@ namespace ConsoleSpeech
             Console.WriteLine("--- Intent received by OnIntentHandler() ---");
             Console.WriteLine(e.Payload);
             Console.WriteLine();
+            HandlePayload(e.Payload);
+        }
+
+        private static void HandlePayload(String payload)
+        {
+            dynamic x = JsonConvert.DeserializeObject(payload);
+            dynamic intent = x["intents"][0];
+            if (intent["intent"] == "TellJoke")
+            {
+                _ss.Speak("What wobbles in the sky? A jellycopter!");
+            }
+            else if (intent["intent"] == "BuyStuff" && intent["actions"][0]["triggered"].Value)
+            {
+                _ss.Speak($"OK, I'll add {intent["actions"][0]["parameters"][0]["value"][0]["entity"]} to your shopping!");
+            }
+            else
+            {
+                _ss.Speak("Sorry, I don't know how to do that.");
+            }
         }
 
         private static void OnConversationErrorHandler(object sender, SpeechErrorEventArgs e)
